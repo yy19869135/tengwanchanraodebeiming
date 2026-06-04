@@ -1,82 +1,78 @@
-// ========== 游戏模式与界面风格 ==========
-function toggleStyleMode() {
-    var container = document.getElementById('gameContainer');
-    var btn = document.getElementById('styleToggleBtn');
-    
-    container.classList.toggle('simple-mode');
-    
-    if (container.classList.contains('simple-mode')) {
-        btn.classList.add('simple-mode');
-        btn.innerHTML = '🩸'; 
-        showToast('已切换至：简洁模式', '#4a90a4');
-    } else {
-        btn.classList.remove('simple-mode');
-        btn.innerHTML = '📱'; 
-        showToast('已切换至：血藤风格', '#8b0000');
-    }
-}
-
-function showToast(text, color) {
-    var toast = document.createElement('div');
-    toast.style.cssText = 'position:fixed;top:10%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#fff;padding:8px 16px;border-radius:20px;z-index:9999;font-size:12px;border:1px solid ' + color + ';';
-    toast.textContent = text;
-    document.body.appendChild(toast);
-    
-    toast.style.opacity = '0';
-    toast.style.transition = 'opacity 0.3s';
-    setTimeout(function() { toast.style.opacity = '1'; }, 10);
-    
-    setTimeout(function() {
-        toast.style.opacity = '0';
-        setTimeout(function() { toast.remove(); }, 300);
-    }, 1500);
-}
-
-function showGameDeclaration() {
-    document.getElementById('gameDeclaration').classList.remove('hidden');
-}
-
-function selectGameMode(mode) {
-    gameMode = mode;
-    var overlay = document.getElementById('gameDeclaration');
-    var transitionOverlay = document.getElementById('transitionOverlay');
-    
-    overlay.style.transition = 'opacity 0.5s ease-out';
-    overlay.style.opacity = '0';
-    
-    transitionOverlay.className = 'transition-overlay active transition-' + mode;
-    if (mode === 'normal') {
-        for(var i=0; i<20; i++) {
-            var p = document.createElement('div');
-            p.className = 'moonlight-particle';
-            p.style.left = Math.random() * 100 + '%';
-            p.style.top = 50 + Math.random() * 50 + '%';
-            p.style.animationDelay = Math.random() * 1 + 's';
-            transitionOverlay.appendChild(p);
-        }
-    } else {
-        transitionOverlay.innerHTML = '<div class="blood-flow"></div><div class="crack-effect"></div><div class="horror-flash"></div>';
-    }
-    
-    setTimeout(function() {
-        overlay.classList.add('hidden');
-        overlay.style.opacity = '1';
-        
-        handleAIResponse(openingContent);
-        
-        setTimeout(function() {
-            transitionOverlay.classList.remove('active');
-            transitionOverlay.innerHTML = '';
-        }, 1500);
-    }, 500);
-}
+// ========== 游戏模式与视觉特效 ==========
+var gameMode = 'normal'; // 默认模式：'normal' 或 'horror'
 
 function toggleGameMode() {
-    gameMode = gameMode === 'normal' ? 'horror' : 'normal';
+    var indicator = document.getElementById('modeIndicator');
+    
+    // ★ 修复：添加点击按钮时的动态缩放回弹效果
+    if (indicator) {
+        indicator.style.transition = 'transform 0.2s ease';
+        indicator.style.transform = 'scale(0.8)';
+        setTimeout(function() {
+            indicator.style.transform = 'scale(1)';
+        }, 200);
+    }
+
+    // 切换模式逻辑
+    if (gameMode === 'normal') {
+        gameMode = 'horror';
+        if (typeof showToast === 'function') {
+            showToast('已切换至【恐怖模式】\n包含惊吓、血腥及精神污染元素', '#ff4444');
+        }
+        document.body.classList.add('horror-theme');
+    } else {
+        gameMode = 'normal';
+        if (typeof showToast === 'function') {
+            showToast('已切换至【温和模式】\n已屏蔽核心恐怖画面', '#4CAF50');
+        }
+        document.body.classList.remove('horror-theme');
+        // 如果切回温和模式，立刻清除屏幕上的恐怖图
+        if (typeof resetJumpscareState === 'function') resetJumpscareState();
+    }
+    updateModeDisplay();
+}
+
+function updateModeDisplay() {
     var indicator = document.getElementById('modeIndicator');
     if (indicator) {
         indicator.textContent = gameMode === 'horror' ? '恐怖' : '温和';
         indicator.className = 'mode-indicator ' + gameMode;
     }
-    showToast(gameMode === 'horror' ? '💀 已切换到恐怖模式' : '🌙 已切换到温和模式', gameMode === 'horror' ? '#8b0000' : '#4a90a4');
+}
+
+function toggleStyleMode() {
+    var body = document.body;
+    var btn = document.getElementById('styleModeBtn');
+    
+    // ★ 修复：简洁/沉浸按钮的动态点击效果
+    if (btn) {
+        btn.style.transition = 'transform 0.2s ease';
+        btn.style.transform = 'scale(0.8)';
+        setTimeout(function() {
+            btn.style.transform = 'scale(1)';
+        }, 200);
+    }
+
+    if (body.classList.contains('simple-mode')) {
+        body.classList.remove('simple-mode');
+        if (btn) btn.textContent = '沉浸';
+        if (typeof showToast === 'function') showToast('已切换至【沉浸模式】', '#7eb8da');
+    } else {
+        body.classList.add('simple-mode');
+        if (btn) btn.textContent = '简洁';
+        if (typeof showToast === 'function') showToast('已切换至【简洁模式】', '#4CAF50');
+    }
+}
+
+// 视觉特效：进入/退出恐怖氛围滤镜
+function enterDungeonVisualMode() {
+    document.body.classList.add('dungeon-mode');
+    var gameScreen = document.getElementById('gameScreen');
+    if (gameScreen) gameScreen.style.boxShadow = 'inset 0 0 100px rgba(255,0,0,0.4)';
+}
+
+function exitDungeonVisualMode() {
+    document.body.classList.remove('dungeon-mode');
+    var gameScreen = document.getElementById('gameScreen');
+    if (gameScreen) gameScreen.style.boxShadow = 'none';
 }
