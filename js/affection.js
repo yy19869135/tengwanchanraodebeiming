@@ -2,9 +2,7 @@
 function toggleAffection() {
     var panel = document.getElementById('affectionPanel');
     panel.classList.toggle('active');
-    if (!panel.classList.contains('active')) {
-        document.getElementById('menuBtn').style.display = 'flex';
-    }
+    document.getElementById('menuBtn').style.display = 'flex'; // ★ 修复：无论怎样都确保恢复菜单按钮
 }
 
 function renderAffection() {
