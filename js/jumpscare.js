@@ -1,3 +1,35 @@
+// ========== 修复：自动注入恐怖特效与铃铛的CSS ==========
+(function injectEffectsCSS() {
+    if (document.getElementById('effects-dynamic-css')) return;
+    var style = document.createElement('style');
+    style.id = 'effects-dynamic-css';
+    style.innerHTML = `
+        /* 恐怖框特效 */
+        .horror-flicker { animation: horrorFlicker 0.15s infinite !important; }
+        .horror-shake { animation: horrorShake 0.2s infinite !important; }
+        .horror-pulse { animation: horrorPulse 1.5s infinite !important; box-shadow: 0 0 20px #ff0000 !important; }
+        @keyframes horrorFlicker { 0%, 100% { opacity: 1; filter: invert(0); } 50% { opacity: 0.8; filter: invert(0.2); } }
+        @keyframes horrorShake { 0% { transform: translate(2px, 1px) rotate(0deg); } 50% { transform: translate(-1px, -2px) rotate(-1deg); } 100% { transform: translate(-3px, 0px) rotate(1deg); } }
+        @keyframes horrorPulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+        .screen-darken { filter: brightness(0.3) contrast(1.5) !important; }
+        .distort-effect { filter: hue-rotate(90deg) contrast(200%) !important; }
+        /* 铃铛粒子特效 */
+        .bell-container { position: relative; }
+        .bell-particle {
+            position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #ffd700;
+            box-shadow: 0 0 8px #ffd700; pointer-events: none; opacity: 1;
+            animation: bellParticleAnim 1s ease-out forwards;
+        }
+        @keyframes bellParticleAnim {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+        .ringing { animation: bellRing 0.5s ease-in-out infinite; }
+        @keyframes bellRing { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(15deg); } 75% { transform: rotate(-15deg); } }
+    `;
+    document.head.appendChild(style);
+})();
+
 // ========== 恐怖特效 ==========
 function enableHorrorFlicker() {
     if (gameMode !== 'horror') return;
@@ -36,7 +68,7 @@ var scaryTexts = {
 };
 
 function triggerJumpscare(type) {
-    if (gameMode !== 'horror') return;
+    if (gameMode !== 'horror') return; // 温和模式直接拦截
     if (jumpscareShown[type]) return;
     
     jumpscareShown[type] = true;
@@ -55,7 +87,7 @@ function triggerJumpscare(type) {
     document.getElementById('jumpscareDoll').classList.remove('active');
     document.getElementById('jumpscareGraffiti').classList.remove('active');
     document.getElementById('jumpscareFinale').classList.remove('active');
-    blackout.classList.remove('darken');
+    if (blackout) blackout.classList.remove('darken');
     
     if (blood) { blood.classList.remove('active'); blood.style.display = 'none'; }
     if (scaryText) { scaryText.classList.remove('active'); scaryText.style.display = 'none'; }
@@ -109,8 +141,10 @@ function triggerJumpscare(type) {
             break;
     }
     
-    dismiss.style.display = 'none';
-    setTimeout(function() { dismiss.style.display = 'block'; }, 500);
+    if (dismiss) {
+        dismiss.style.display = 'none';
+        setTimeout(function() { dismiss.style.display = 'block'; }, 500);
+    }
     setTimeout(function() { dismissJumpscare(); }, 1000);
 }
 
@@ -129,18 +163,21 @@ function dismissJumpscare() {
         setTimeout(function() { afterimage.style.display = 'none'; afterimage.classList.remove('active'); }, 3000);
     }
     
-    overlay.style.transition = 'opacity 0.5s ease-out';
-    overlay.style.opacity = '0';
+    if (overlay) {
+        overlay.style.transition = 'opacity 0.5s ease-out';
+        overlay.style.opacity = '0';
+    }
     
     setTimeout(function() {
-        overlay.classList.remove('active', 'mirror-active');
-        overlay.style.opacity = ''; overlay.style.transition = '';
-        document.getElementById('jumpscareStepmother').classList.remove('active');
-        document.getElementById('jumpscareChildren').classList.remove('active');
-        document.getElementById('jumpscareHand').classList.remove('active');
-        document.getElementById('jumpscareMirror').classList.remove('active');
-        document.getElementById('jumpscareDoll').classList.remove('active');
-        document.getElementById('jumpscareGraffiti').classList.remove('active');
+        if (overlay) {
+            overlay.classList.remove('active', 'mirror-active');
+            overlay.style.opacity = ''; overlay.style.transition = '';
+        }
+        var ids = ['jumpscareStepmother', 'jumpscareChildren', 'jumpscareHand', 'jumpscareMirror', 'jumpscareDoll', 'jumpscareGraffiti'];
+        ids.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.classList.remove('active');
+        });
         
         var blackout = document.getElementById('jumpscareBlackout');
         if (blackout) blackout.classList.remove('darken');
@@ -152,14 +189,14 @@ function dismissJumpscare() {
         if (blood) { blood.classList.remove('active'); blood.style.display = 'none'; }
         
         var container = document.getElementById('gameContainer');
-        container.classList.remove('screen-darken', 'distort-effect');
+        if (container) container.classList.remove('screen-darken', 'distort-effect');
     }, 500);
 }
 
 function checkJumpscareForCurrentLine(lineContent) {
     if (!lineContent) return;
     var scene = '';
-    if (lastAIResponse) {
+    if (typeof lastAIResponse !== 'undefined' && lastAIResponse) {
         var sceneMatch = lastAIResponse.match(/\[场景\|([^\]]+)\]/);
         if (sceneMatch) scene = sceneMatch[1];
     }
@@ -216,7 +253,7 @@ function checkJumpscareForCurrentLine(lineContent) {
 }
 
 function checkJumpscareFromContent(content, scene) {
-    // 该内容已由 checkJumpscareForCurrentLine 按句处理，保留此空函数供向下兼容
+    // 保持向下兼容
 }
 
 // ========== 铃铛系统 ==========
@@ -231,9 +268,9 @@ function triggerBell(text) {
     var bellImage = document.getElementById('bellImage');
     var bellText = document.getElementById('bellText');
     
-    bellText.textContent = text || '铃声清脆，回荡在洋楼之中...';
-    overlay.classList.add('active');
-    bellImage.classList.add('ringing');
+    if (bellText) bellText.textContent = text || '铃声清脆，回荡在洋楼之中...';
+    if (overlay) overlay.classList.add('active');
+    if (bellImage) bellImage.classList.add('ringing');
     
     createBellParticles();
     if (typeof playSound === 'function') playSound('clock', 0.4);
@@ -262,13 +299,17 @@ function dismissBell() {
     isBellActive = false;
     var overlay = document.getElementById('bellOverlay');
     var bellImage = document.getElementById('bellImage');
-    overlay.style.transition = 'opacity 0.5s ease-out';
-    overlay.style.opacity = '0';
+    if (overlay) {
+        overlay.style.transition = 'opacity 0.5s ease-out';
+        overlay.style.opacity = '0';
+    }
     setTimeout(function() {
-        overlay.classList.remove('active');
-        overlay.style.opacity = '';
-        overlay.style.transition = '';
-        bellImage.classList.remove('ringing');
+        if (overlay) {
+            overlay.classList.remove('active');
+            overlay.style.opacity = '';
+            overlay.style.transition = '';
+        }
+        if (bellImage) bellImage.classList.remove('ringing');
     }, 500);
 }
 
