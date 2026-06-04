@@ -265,3 +265,8 @@ function checkAndTriggerMinigame(text) {
     }
     return false;
 }
+
+function toggleMinigamePanel() {
+    var panel = document.getElementById('minigamePanel');
+    panel.classList.toggle('active');
+}
