@@ -12,8 +12,8 @@ function toggleSavePanel() {
 
 function switchSaveMode(mode) {
     currentSaveMode = mode;
-    document.getElementById('tabSave').classList.toggle('active', mode === 'save');
-    document.getElementById('tabLoad').classList.toggle('active', mode === 'load');
+    document.getElementById('saveTab').classList.toggle('active', mode === 'save');
+    document.getElementById('loadTab').classList.toggle('active', mode === 'load');
     renderSaveSlots();
 }
 
