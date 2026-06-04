@@ -66,9 +66,9 @@ function parseTimeFromAIResponse(content) {
     var timeMatch = content.match(/\[时间\|([^\]]+)\]/);
     var moodMatch = content.match(/\[氛围\|([^\]]+)\]/);
     
-    var currentScene = sceneMatch ? sceneMatch[1] : '';
-    var currentTime = timeMatch ? timeMatch[1] : '';
-    var currentMood = moodMatch ? moodMatch[1] : '';
+    var currentScene = (sceneMatch ? sceneMatch[1] : '') || '';
+    var currentTime = (timeMatch ? timeMatch[1] : '') || '';
+    var currentMood = (moodMatch ? moodMatch[1] : '') || '';
     
     var isHEScene = false;
     var isDungeonScene = false;
