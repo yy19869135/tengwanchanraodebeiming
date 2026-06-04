@@ -1,3 +1,16 @@
+// ========== 自定义 API 配置 (在这里修改你的配置) ==========
+const API_URL = 'https://api.242243.xyz/v1/chat/completions'; // 替换为你的 API 地址
+const API_KEY = 'sk-4FyMPKGgQZCm5UMAE5ki638FFOaJDLr6ewKlvyCHLFde74xA'; // 替换为你的真实 API Key
+const MODEL_NAME = '[官3] deepseek-v4-pro'; // 替换为你的模型名称
+
+// 聊天历史记录（用于让 AI 记住上下文）
+let chatHistory = [
+    { 
+        role: 'system', 
+        content: '你是一个文字冒险游戏的AI引擎。请严格按照<visual_novel>、<scene_info>、<narration>、<choices>等XML标签格式输出游戏内容，推动剧情发展。' 
+    }
+];
+
 // ========== 状态显示 ==========
 function updateStatus(text, color) {
     var st = document.getElementById('sdkStatus');
@@ -27,115 +40,87 @@ function setWaiting(waiting) {
     }
 }
 
-// ========== SDK检测 ==========
-function detectSDK() {
-    console.log('=== 检测SDK ===');
-    if (typeof window.MujianSdk === 'function') return new window.MujianSdk();
-    if (window.MujianUMD && window.MujianUMD.MujianSdk) return new window.MujianUMD.MujianSdk();
-    if (window.mujian && window.mujian.MujianSdk) return new window.mujian.MujianSdk();
-    if (window.MujianUMD && window.MujianUMD.default) return new window.MujianUMD.default();
-    console.log('✗ 未找到SDK');
-    return null;
-}
-
-// ========== 获取人设信息 ==========
-function fetchPersonaInfo() {
-    if (!sdkReady || !mujianSdk) {
-        console.log('SDK未就绪，无法获取人设');
-        return;
-    }
-    mujianSdk.ai.chat.settings.persona.getActive().then(function(res) {
-        console.log("=== 人设信息 ===", res);
-        if (res) {
-            if (res.name) {
-                var nameInput = document.getElementById('playerNameInput');
-                if (nameInput && !nameInput.value) nameInput.value = res.name;
-            }
-            var bioText = res.description || res.bio || res.persona || res.content || res.intro || res.profile || '';
-            if (bioText) {
-                var bioInput = document.getElementById('playerBioInput');
-                if (bioInput && !bioInput.value) bioInput.value = bioText;
-            }
-        }
-    }).catch(function(err) {
-        console.log("获取人设信息失败:", err);
-    });
-}
-
-// ========== 初始化SDK ==========
+// ========== 初始化自定义API ==========
 async function initSDK() {
-    updateStatus('检测SDK...', '#ffaa00');
-    console.log('=== 初始化SDK (尝试 ' + (retryCount + 1) + '/' + maxRetry + ') ===');
-
-    try {
-        mujianSdk = detectSDK();
-        if (mujianSdk) {
-            console.log('SDK实例创建成功，开始初始化...');
-            await mujianSdk.init();
-            sdkReady = true;
-            fetchPersonaInfo();
-            updateStatus('✓ 已连接', '#00ff00');
-            return true;
-        } else {
-            retryCount++;
-            if (retryCount < maxRetry) {
-                updateStatus('重试中(' + retryCount + ')...', '#ffaa00');
-                setTimeout(initSDK, 500 * retryCount);
-                return false;
-            } else {
-                updateStatus('✗ 未连接', '#ff4444');
-                sdkReady = false;
-                return false;
-            }
-        }
-    } catch (error) {
-        console.error('SDK初始化失败:', error);
-        updateStatus('✗ 错误', '#ff4444');
-        sdkReady = false;
-        return false;
-    }
+    updateStatus('连接API...', '#ffaa00');
+    console.log('=== 初始化自定义 API ===');
+    
+    // 直接标记为就绪，跳过繁琐的检测
+    sdkReady = true;
+    updateStatus('✓ 已连接', '#00ff00');
+    
+    return true;
 }
 
-// ========== 发送消息 ==========
+// ========== 发送消息到自定义API ==========
 async function sendToAI(query) {
     if (isWaiting) return;
     setWaiting(true);
 
-    if (!sdkReady || !mujianSdk) {
+    if (!sdkReady) {
         setTimeout(function() {
             setWaiting(false);
-            document.getElementById('dialogueText').textContent = '❌ SDK未连接，请在幕间APP中打开';
-            document.getElementById('continueHint').textContent = '请检查环境';
+            document.getElementById('dialogueText').textContent = '❌ API未连接';
+            document.getElementById('continueHint').textContent = '请刷新页面重试';
         }, 500);
         return;
     }
 
     try {
-        var fullContent = '';
         var finalQuery = query;
-        if (playerInfo.name && !playerInfoSent) {
-            finalQuery = getPlayerInfoText() + query;
+        
+        // 兼容你原有的玩家设定发送逻辑
+        if (typeof playerInfo !== 'undefined' && playerInfo.name && typeof playerInfoSent !== 'undefined' && !playerInfoSent) {
+            if (typeof getPlayerInfoText === 'function') {
+                finalQuery = getPlayerInfoText() + query;
+            }
             playerInfoSent = true;
         }
 
-        await mujianSdk.ai.chat.complete(finalQuery,
-            function(res) {
-                fullContent = res.fullContent;
-                var preview = fullContent.substring(0, 80);
-                document.getElementById('dialogueText').textContent = preview + '...';
+        // 把玩家说的话加入历史记录
+        chatHistory.push({ role: 'user', content: finalQuery });
 
-                if (res.isFinished) {
-                    setWaiting(false);
-                    handleAIResponse(fullContent);
-                }
+        document.getElementById('dialogueText').textContent = 'AI思考中...';
+
+        // 正式发起 API 请求
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + API_KEY
             },
-            null,
-            { parseContent: true }
-        );
+            body: JSON.stringify({
+                model: MODEL_NAME,
+                messages: chatHistory,
+                temperature: 0.7
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('HTTP 状态码错误: ' + response.status);
+        }
+
+        const data = await response.json();
+        const fullContent = data.choices[0].message.content;
+
+        // 把 AI 的回复也加入历史记录，这样它就有记忆了
+        chatHistory.push({ role: 'assistant', content: fullContent });
+
+        var preview = fullContent.substring(0, 80);
+        document.getElementById('dialogueText').textContent = preview + '...';
+
+        setWaiting(false);
+        
+        // 呼叫你原有的解析系统，处理 AI 返回的 XML
+        if (typeof handleAIResponse === 'function') {
+            handleAIResponse(fullContent);
+        }
+
     } catch (error) {
         console.error('发送失败:', error);
         setWaiting(false);
         document.getElementById('dialogueText').textContent = '❌ 发送失败: ' + error.message;
-        document.getElementById('continueHint').textContent = '请重试';
+        var hint = document.getElementById('continueHint');
+        if (hint) hint.textContent = '请检查 API 地址和密钥是否正确';
     }
 }
