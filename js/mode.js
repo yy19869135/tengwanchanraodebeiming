@@ -70,3 +70,13 @@ function selectGameMode(mode) {
         }, 1500);
     }, 500);
 }
+
+function toggleGameMode() {
+    gameMode = gameMode === 'normal' ? 'horror' : 'normal';
+    var indicator = document.getElementById('modeIndicator');
+    if (indicator) {
+        indicator.textContent = gameMode === 'horror' ? '恐怖' : '温和';
+        indicator.className = 'mode-indicator ' + gameMode;
+    }
+    showToast(gameMode === 'horror' ? '💀 已切换到恐怖模式' : '🌙 已切换到温和模式', gameMode === 'horror' ? '#8b0000' : '#4a90a4');
+}
