@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>洋楼记忆</title>
+    <script src="https://npm.onmicrosoft.cn/@mujian/js-sdk@0.0.6-beta.37/dist/umd/index.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <!-- 游戏声明/模式选择页面 -->
+        <div class="game-declaration-overlay" id="gameDeclaration">
+            <div class="declaration-fog"></div>
+            <div class="declaration-fog"></div>
+            <div class="declaration-blood-drip" style="left: 10%; animation-delay: 0s;"></div>
+            <div class="declaration-blood-drip" style="left: 30%; animation-delay: 1.5s;"></div>
+            <div class="declaration-blood-drip" style="left: 55%; animation-delay: 3s;"></div>
+            <div class="declaration-blood-drip" style="left: 75%; animation-delay: 4.5s;"></div>
+            <div class="declaration-blood-drip" style="left: 90%; animation-delay: 2s;"></div>
+            <div class="declaration-title">洋楼记忆</div>
+            <div class="declaration-subtitle">— 记忆缝合楼 —</div>
+            <div class="declaration-content">
+                <div class="declaration-warning-title">⚠️ 游戏声明</div>
+                <ul class="declaration-warning-list">
+                    <li>本游戏包含恐怖/惊悚元素</li>
+                    <li>包含突然出现的惊吓画面（Jump Scare）</li>
+                    <li>包含压抑/悲伤的情感内容</li>
+                    <li>包含画面闪烁</li>
+                </ul>
+                <div class="declaration-hint">
+                    如您对惊吓内容感到不适，建议选择「温和模式」<br>
+                    两种模式的剧情内容完全相同，仅视觉效果有差异
+                </div>
+            </div>
+            <div class="mode-buttons">
+                <div class="mode-btn mode-btn-normal" onclick="selectGameMode('normal')">
+                    <div class="mode-btn-icon">🌙</div>
+                    <div class="mode-btn-title">温和模式</div>
+                    <div class="mode-btn-desc">无惊吓画面，适合轻度体验</div>
+                </div>
+                <div class="mode-btn mode-btn-horror" onclick="selectGameMode('horror')">
+                    <div class="mode-btn-icon">💀</div>
+                    <div class="mode-btn-title">恐怖模式</div>
+                    <div class="mode-btn-desc">包含惊吓内容，胆小慎入</div>
+                </div>
+            </div>
+            <div class="transition-overlay" id="transitionOverlay"></div>
+        </div>
+
+        <!-- 玩家信息设置面板 -->
+        <div class="setup-panel" id="setupPanel">
+            <div class="setup-box">
+                <div class="setup-title">📜 身份登记</div>
+                <div class="setup-subtitle">请填写你在副本中的身份信息</div>
+                <div class="setup-field">
+                    <label class="setup-label">姓名 <span style="color:#ff4444;">*</span></label>
+                    <input type="text" class="setup-input" id="playerNameInput" placeholder="请输入你的名字" maxlength="10">
+                </div>
+                <div class="setup-field">
+                    <label class="setup-label">性别</label>
+                    <div class="setup-gender-display">♀ 女（固定）</div>
+                </div>
+                <div class="setup-field">
+                    <label class="setup-label">人物简介 <span style="color:#666;font-size:11px;">(外貌/性格/背景)</span></label>
+                    <textarea class="setup-textarea" id="playerBioInput" placeholder="例如：
+黑色长发及腰，肤白貌美
+性格温柔但有点倔强
+是一名刚毕业的大学生..."></textarea>
+                </div>
+                <button class="setup-btn" onclick="savePlayerInfo()">进入副本</button>
+                <div class="setup-hint">* 此信息将帮助AI更好地与你互动</div>
+            </div>
+        </div>
+
+        <div class="background-layer"><img class="background-image" id="bgImage" src="" alt="" oncontextmenu="return false;" ondragstart="return false;"></div>
+        <div class="atmosphere-layer">
+            <div class="fog"></div><div class="fog"></div>
+            <div class="blood-drip"></div><div class="blood-drip"></div><div class="blood-drip"></div>
+        </div>
+        <div class="sprite-layer"><img class="character-sprite" id="charSprite" src="" alt=""></div>
+        <div class="scene-info">
+            <div class="scene-time" id="sceneTime"></div>
+            <div class="scene-mood" id="sceneMood"></div>
+        </div>
+        <div class="player-info-bar" id="playerInfoBar" style="display:none;">
+            <div class="player-name-display" id="playerNameShow">???</div>
+            <div class="player-gender-display">♀ 女</div>
+        </div>
+        <div class="sdk-status" id="sdkStatus">检测SDK...</div>
+        <div class="countdown-box"><div class="countdown-label">剩余时间</div><div class="countdown-time" id="countdownTime">11:59:56</div></div>
+        <div class="style-toggle-btn" id="styleToggleBtn" onclick="toggleSimpleMode()" title="切换简洁/华丽模式">🎨</div>
+        <div class="menu-button" id="menuBtn" onclick="toggleMenu()">💀</div>
+        <div class="menu-panel" id="menuPanel">
+            <div class="menu-close" onclick="toggleMenu()">✕</div>
+            <div class="menu-title">◆菜单◆</div>
+            <div class="menu-item" onclick="menuAction('affection')">💕 好感度</div>
+            <div class="menu-item" onclick="menuAction('character')">📜 人物档案</div>
+            <div class="menu-item" onclick="menuAction('recall')">📖 剧情回忆</div>
+            <div class="menu-item" onclick="menuAction('save')">📖 存档</div>
+            <div class="menu-item" onclick="menuAction('load')">📂 读档</div>
+            <div class="menu-item" onclick="menuAction('minigame')">🎮 小游戏</div>
+            <div class="menu-item" onclick="menuAction('sound')">🎵 暂无</div>
+            <div class="menu-item mode-switch" onclick="menuAction('toggleMode')">🎭 游戏模式 <span class="mode-indicator normal" id="modeIndicator">温和</span></div>
+            <div class="menu-item" onclick="menuAction('editPlayer')">✏️ 编辑身份</div>
+            <div class="menu-item" onclick="menuAction('restart')">🔄 重新开始</div>
+            <div class="menu-item" onclick="menuAction('title')">🚪 返回标题</div>
+        </div>
+        <div class="affection-panel" id="affectionPanel">
+            <div class="affection-header">
+                <div class="affection-title">💕 好感度</div>
+                <div class="affection-close" onclick="toggleAffection()">✕</div>
+            </div>
+            <div id="affectionContent"></div>
+        </div>
+
+        <!-- 存档面板 -->
+        <div class="save-panel" id="savePanel">
+            <div class="save-header">
+                <div class="save-title">📖 存档管理</div>
+                <div class="save-close" onclick="toggleSavePanel()">✕</div>
+            </div>
+            <div class="save-mode-tabs">
+                <button class="mode-tab active" id="saveTab" onclick="switchSaveMode('save')">存档</button>
+                <button class="mode-tab" id="loadTab" onclick="switchSaveMode('load')">读档</button>
+            </div>
+            <div id="saveSlots"></div>
+        </div>
+
+        <!-- 人物介绍面板 -->
+        <div class="character-intro-panel" id="characterIntroPanel">
+            <div class="intro-header">
+                <div class="intro-title">📜 人物档案</div>
+                <div class="intro-close" onclick="toggleCharacterIntro()">✕</div>
+            </div>
+            <div class="intro-tabs">
+                <button class="intro-tab active" id="publicTab" onclick="switchIntroTab('public')">明面介绍</button>
+                <button class="intro-tab locked" id="hiddenTab" onclick="switchIntroTab('hidden')">隐藏真相</button>
+            </div>
+            <div id="characterIntroContent"></div>
+        </div>
+
+        <!-- 剧情回忆面板 -->
+        <div class="story-recall-panel" id="storyRecallPanel">
+            <div class="recall-header">
+                <div class="recall-title">📖 剧情回忆</div>
+                <div class="recall-close" onclick="toggleStoryRecall()">✕</div>
+            </div>
+            <div class="recall-stats" id="recallStats"></div>
+            <div class="recall-filter" id="recallFilter"></div>
+            <div id="storyRecallContent"></div>
+        </div>
+
+        <div class="choices-container hidden" id="choicesContainer"></div>
+        <div class="name-box" id="nameBox"><div class="character-name" id="charName">???</div></div>
+        <div class="dialogue-box" id="dialogueBox" onclick="continueDialogue()">
+            <div class="blood-drip-box">
+                <img class="blood-drop-anim" src="https://cdn.mujian.me/tuchuang/69677d99ee8db.png" style="position:absolute;top:-15px;left:12%;width:10px;opacity:0;animation:bloodFall 6s infinite 0s;">
+                <img class="blood-drop-anim" src="https://cdn.mujian.me/tuchuang/69677d99ee8db.png" style="position:absolute;top:-15px;left:50%;width:10px;opacity:0;animation:bloodFall 6s infinite 2.5s;">
+                <img class="blood-drop-anim" src="https://cdn.mujian.me/tuchuang/69677d99ee8db.png" style="position:absolute;top:-15px;left:82%;width:10px;opacity:0;animation:bloodFall 6s infinite 4s;">
+            </div>
+            <div class="dialogue-content"><div class="dialogue-text" id="dialogueText"></div></div>
+            <div class="continue-hint" id="continueHint">点击继续</div>
+        </div>
+
+        <div class="input-button" id="inputBtn" onclick="openInputBox()">✏️</div>
+        <div class="input-modal" id="inputModal">
+            <div class="input-box">
+                <div class="input-header"><span>输入内容</span><span class="close-btn" onclick="closeInputBox()">✕</span></div>
+                <textarea id="userInput" class="input-textarea" placeholder="请输入你想说的话..."></textarea>
+                <div class="input-actions">
+                    <button class="cancel-btn" onclick="closeInputBox()">取消</button>
+                    <button class="send-btn" onclick="sendMessage()">发送</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 小游戏主面板 -->
+        <div class="minigame-panel" id="minigamePanel">
+            <div class="minigame-header">
+                <div class="minigame-title">🎮 休闲小游戏</div>
+                <div class="minigame-close" onclick="toggleMinigamePanel()">✕</div>
+            </div>
+            <div id="gameCategories"></div>
+        </div>
+
+        <!-- 游戏界面容器 -->
+        <div class="game-screen" id="gameScreen">
+            <div class="game-top-bar">
+                <button class="game-back-btn" onclick="exitGame()">← 返回</button>
+                <div class="game-score" id="gameScore"></div>
+            </div>
+            <div class="game-area" id="gameArea"></div>
+        </div>
+
+        <div class="loading" id="loadingText">正在加载...</div>
+
+        <!-- 剧情详情弹窗 -->
+        <div class="recall-modal" id="recallModal">
+            <div class="recall-modal-box">
+                <div class="recall-modal-header">
+                    <span class="recall-modal-title" id="recallModalTitle">📖 剧情详情</span>
+                    <span class="recall-modal-close" onclick="closeRecallModal()">✕</span>
+                </div>
+                <div class="recall-modal-body" id="recallModalBody"></div>
+            </div>
+        </div>
+
+        <!-- 铃铛摇响动画 -->
+        <div class="bell-overlay" id="bellOverlay" onclick="dismissBell()">
+            <div class="bell-container">
+                <div class="bell-aura"></div>
+                <img class="bell-image" id="bellImage" src="https://cdn.mujian.me/tuchuang/696be309604d5.png" alt="铜铃">
+                <div class="bell-text" id="bellText">铃声清脆，回荡在洋楼之中...</div>
+            </div>
+            <div class="bell-dismiss">点击屏幕继续...</div>
+        </div>
+
+        <!-- Jump Scare 惊吓系统 -->
+        <div class="jumpscare-overlay" id="jumpscareOverlay" onclick="dismissJumpscare()">
+            <div class="jumpscare-blackout" id="jumpscareBlackout"></div>
+            <div class="jumpscare-filter"></div>
+            <div class="jumpscare-blood" id="jumpscareBlood" style="display:none;"></div>
+            <div class="jumpscare-text" id="jumpscareText" style="display:none;"></div>
+            <img class="jumpscare-image stepmother" id="jumpscareStepmother" src="https://cdn.mujian.me/tuchuang/69691d3760a59.png" alt="">
+            <img class="jumpscare-image children" id="jumpscareChildren" src="https://cdn.mujian.me/tuchuang/69691d37916cc.png" alt="">
+            <img class="jumpscare-image hand" id="jumpscareHand" src="https://cdn.mujian.me/tuchuang/696a702c158fb.png" alt="">
+            <img class="jumpscare-image mirror" id="jumpscareMirror" src="https://cdn.mujian.me/tuchuang/696b43a261a2e.png" alt="">
+            <img class="jumpscare-image doll" id="jumpscareDoll" src="https://cdn.mujian.me/tuchuang/696b45b340f2f.png" alt="">
+            <img class="jumpscare-image graffiti" id="jumpscareGraffiti" src="https://cdn.mujian.me/tuchuang/696b46189ab5f.png" alt="">
+            <img class="jumpscare-image finale" id="jumpscareFinale" src="https://cdn.mujian.me/tuchuang/696bd3a6588cf.png" alt="">
+            <img class="jumpscare-afterimage" id="jumpscareAfterimage" src="" alt="" style="display:none;">
+            <div class="jumpscare-dismiss" id="jumpscareDismiss">点击屏幕继续...</div>
+        </div>
+    </div>
+
+    <!-- 弹窗背后的继母 -->
+    <div class="stepmother-behind" id="stepmotherBehind">
+        <img src="https://cdn.mujian.me/tuchuang/69691d3760a59.png" alt="">
+    </div>
+
+    <!-- 剧情介绍弹窗 -->
+    <div class="story-intro-overlay" id="storyIntroOverlay">
+        <div class="story-intro-box">
+            <div class="story-intro-header">
+                <div class="story-intro-floor" id="storyIntroFloor">第一层</div>
+                <div class="story-intro-title" id="storyIntroTitle">午夜家暴现场</div>
+            </div>
+            <div class="story-intro-body" id="storyIntroBody"></div>
+            <div class="story-intro-footer">
+                <button class="story-intro-btn" onclick="closeStoryIntro()">进入记忆</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 脚本按依赖顺序加载，main.js 必须最后 -->
+    <script src="js/config.js"></script>
+    <script src="js/sound.js"></script>
+    <script src="js/time.js"></script>
+    <script src="js/parser.js"></script>
+    <script src="js/sdk.js"></script>
+    <script src="js/affection.js"></script>
+    <script src="js/dialogue.js"></script>
+    <script src="js/jumpscare.js"></script>
+    <script src="js/story.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/save.js"></script>
+    <script src="js/mode.js"></script>
+    <script src="js/minigames.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
