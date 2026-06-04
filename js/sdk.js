@@ -4,12 +4,7 @@ const API_KEY = 'sk-4FyMPKGgQZCm5UMAE5ki638FFOaJDLr6ewKlvyCHLFde74xA'; // 替换
 const MODEL_NAME = '[官3] deepseek-v4-pro'; // 替换为你的模型名称
 
 // 聊天历史记录（用于让 AI 记住上下文）
-let chatHistory = [
-    { 
-        role: 'system', 
-        content: '你是一个文字冒险游戏的AI引擎。请严格按照<visual_novel>、<scene_info>、<narration>、<choices>等XML标签格式输出游戏内容，推动剧情发展。' 
-    }
-];
+let chatHistory = [];
 
 // ========== 状态显示 ==========
 function updateStatus(text, color) {
@@ -44,11 +39,15 @@ function setWaiting(waiting) {
 async function initSDK() {
     updateStatus('连接API...', '#ffaa00');
     console.log('=== 初始化自定义 API ===');
-    
-    // 直接标记为就绪，跳过繁琐的检测
+
+    // 注入世界书系统提示词
+    var systemPrompt = (typeof SYSTEM_PROMPT !== 'undefined' && SYSTEM_PROMPT)
+        ? SYSTEM_PROMPT
+        : '你是一个文字冒险游戏的AI引擎。请严格按照<visual_novel>、<scene_info>、<narration>、<choices>等XML标签格式输出游戏内容，推动剧情发展。';
+    chatHistory = [{ role: 'system', content: systemPrompt }];
+
     sdkReady = true;
     updateStatus('✓ 已连接', '#00ff00');
-    
     return true;
 }
 
