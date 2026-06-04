@@ -269,4 +269,7 @@ function checkAndTriggerMinigame(text) {
 function toggleMinigamePanel() {
     var panel = document.getElementById('minigamePanel');
     panel.classList.toggle('active');
+    if (panel.classList.contains('active')) {
+        renderGameCategories();
+    }
 }
