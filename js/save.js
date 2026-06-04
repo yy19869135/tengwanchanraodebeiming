@@ -6,10 +6,7 @@ function toggleSavePanel() {
     var panel = document.getElementById('savePanel');
     panel.classList.toggle('active');
     if (panel.classList.contains('active')) {
-        document.getElementById('menuBtn').style.display = 'none';
         renderSaveSlots();
-    } else {
-        document.getElementById('menuBtn').style.display = 'flex';
     }
 }
 
