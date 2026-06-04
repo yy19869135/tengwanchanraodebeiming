@@ -1,38 +1,13 @@
 // ========== 自定义 API 配置 (在这里修改你的配置) ==========
-const API_URL = 'https://api.242243.xyz/v1'; // 替换为你的 API 地址
+const API_URL = 'https://api.242243.xyz/v1/chat/completions'; // 替换为你的 API 地址
 const API_KEY = 'sk-4FyMPKGgQZCm5UMAE5ki638FFOaJDLr6ewKlvyCHLFde74xA'; // 替换为你的真实 API Key
 const MODEL_NAME = '[官3] deepseek-v4-pro'; // 替换为你的模型名称
 
-// 从世界书构建系统提示词
-function buildSystemPrompt() {
-    if (typeof LOREBOOK_DATA === 'undefined' || !LOREBOOK_DATA.entries) {
-        return '你是一个文字冒险游戏的AI引擎。请严格按照<visual_novel>、<scene_info>、<narration>、<choices>等XML标签格式输出游戏内容，推动剧情发展。';
-    }
-    var entries = [];
-    var data = LOREBOOK_DATA.entries;
-    for (var key in data) {
-        var e = data[key];
-        if (e.disable) continue;        // 跳过被禁用的条目
-        if (!e.content) continue;       // 跳过空内容的条目
-        entries.push(e);
-    }
-    // 按 order 从小到大排序，order 相同则按 displayIndex
-    entries.sort(function(a, b) {
-        if (a.order !== b.order) return a.order - b.order;
-        return a.displayIndex - b.displayIndex;
-    });
-    var parts = [];
-    for (var i = 0; i < entries.length; i++) {
-        parts.push(entries[i].content);
-    }
-    return parts.join('\n\n---\n\n');
-}
-
 // 聊天历史记录（用于让 AI 记住上下文）
 let chatHistory = [
-    {
-        role: 'system',
-        content: buildSystemPrompt()
+    { 
+        role: 'system', 
+        content: '你是一个文字冒险游戏的AI引擎。请严格按照<visual_novel>、<scene_info>、<narration>、<choices>等XML标签格式输出游戏内容，推动剧情发展。' 
     }
 ];
 
