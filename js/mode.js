@@ -33,12 +33,12 @@ function showToast(text, color) {
 }
 
 function showGameDeclaration() {
-    document.getElementById('gameDeclarationOverlay').classList.remove('hidden');
+    document.getElementById('gameDeclaration').classList.remove('hidden');
 }
 
 function selectGameMode(mode) {
     gameMode = mode;
-    var overlay = document.getElementById('gameDeclarationOverlay');
+    var overlay = document.getElementById('gameDeclaration');
     var transitionOverlay = document.getElementById('transitionOverlay');
     
     overlay.style.transition = 'opacity 0.5s ease-out';
