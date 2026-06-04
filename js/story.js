@@ -57,7 +57,7 @@ function toggleStoryRecall() {
         document.getElementById('menuBtn').style.display = 'none';
         renderStoryRecall('all');
     } else {
-        document.getElementById('menuBtn').style.display = 'flex';
+        document.getElementById('menuBtn').style.display = 'flex'; // ★ 修复：关闭时恢复菜单按钮
     }
 }
 
