@@ -10,6 +10,8 @@ function showSetupPanel() {
     document.getElementById('setupPanel').classList.remove('hidden');
 }
 
+var gameStarted = false;
+
 function savePlayerInfo() {
     var name = document.getElementById('playerNameInput').value.trim();
     if (!name) {
@@ -22,10 +24,12 @@ function savePlayerInfo() {
     
     document.getElementById('setupPanel').classList.add('hidden');
     updatePlayerInfoDisplay();
-    playerInfoSent = false; 
-    
-        document.getElementById('gameDeclaration').classList.remove('hidden');
+    playerInfoSent = false;
 
+    if (!gameStarted) {
+        gameStarted = true;
+        document.getElementById('gameDeclaration').classList.remove('hidden');
+    }
 }
 
 function getPlayerInfoText() {
