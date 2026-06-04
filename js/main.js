@@ -2,48 +2,60 @@
 function toggleMenu() {
     var menu = document.getElementById('menuPanel');
     menu.classList.toggle('active');
+    var menuBtn = document.getElementById('menuBtn');
+    if (menu.classList.contains('active')) {
+        menuBtn.style.display = 'none';
+    } else {
+        menuBtn.style.display = 'flex';
+    }
+}
+
+function menuAction(a) {
+    document.getElementById('menuPanel').classList.remove('active');
+    document.getElementById('menuBtn').style.display = 'flex';
+
+    if (a === 'affection') { renderAffection(); toggleAffection(); return; }
+    if (a === 'character') { toggleCharacterIntro(); return; }
+    if (a === 'recall') { toggleStoryRecall(); return; }
+    if (a === 'save') { switchSaveMode('save'); toggleSavePanel(); return; }
+    if (a === 'load') { switchSaveMode('load'); toggleSavePanel(); return; }
+    if (a === 'minigame') { toggleMinigamePanel(); return; }
+    if (a === 'sound') { showToast('🎵 暂无', '#666'); return; }
+    if (a === 'toggleMode') { toggleGameMode(); return; }
+    if (a === 'editPlayer') { showSetupPanel(); return; }
+    if (a === 'restart') {
+        if (confirm('确定要重新开始游戏吗？当前进度将丢失。')) { restartGame(); }
+        return;
+    }
+    if (a === 'title') {
+        if (confirm('确定返回标题？')) { location.reload(); }
+        return;
+    }
 }
 
 function restartGame() {
-    if (confirm('确定要重新开始游戏吗？当前进度将丢失（除非已存档）。')) {
-        timeSystem.reset();
-        affectionData.characters.forEach(function(c) {
-            c.value = c.name === '温辞' ? 15 : (c.name === '沈砚辞' ? 10 : 5);
-            updateStage(c);
-        });
-        currentDialogueIndex = 0;
-        dialogueLines = [];
-        dialogueTypes = [];
-        dialogueSpeakers = [];
-        storyRecall = [];
-        storyIntroShown = {};
-        resetBellState();
-        resetJumpscareState();
-        
-        document.getElementById('menuPanel').classList.remove('active');
-        showSetupPanel();
-    }
+    timeSystem.reset();
+    affectionData.characters.forEach(function(c) {
+        c.value = c.name === '温辞' ? 15 : (c.name === '沈砚辞' ? 10 : 5);
+        updateStage(c);
+    });
+    currentDialogueIndex = 0;
+    dialogueLines = [];
+    dialogueTypes = [];
+    dialogueSpeakers = [];
+    storyRecall = [];
+    storyIntroShown = {};
+    resetBellState();
+    resetJumpscareState();
+    document.getElementById('menuPanel').classList.remove('active');
+    showSetupPanel();
 }
 
 // ========== 初始化与事件绑定 ==========
 window.onload = function() {
-    // 1. 初始化系统
     timeSystem.init();
     preloadSounds();
-    
-    // 2. 绑定核心按钮事件
-    var inputBtn = document.getElementById('inputBtn');
-    if (inputBtn) inputBtn.onclick = openInputBox;
-    
-    var sendBtn = document.getElementById('sendBtn');
-    if (sendBtn) sendBtn.onclick = sendMessage;
-    
-    var closeInputBtn = document.getElementById('closeInputBtn');
-    if (closeInputBtn) closeInputBtn.onclick = closeInputBox;
-    
-    var dialogueBox = document.getElementById('dialogueBox');
-    if (dialogueBox) dialogueBox.onclick = continueDialogue;
-    
+
     var userInput = document.getElementById('userInput');
     if (userInput) {
         userInput.addEventListener('keypress', function(e) {
@@ -51,16 +63,7 @@ window.onload = function() {
         });
     }
 
-    // 3. 绑定顶部菜单按钮事件
-    var menuBtn = document.getElementById('menuBtn');
-    if (menuBtn) menuBtn.onclick = toggleMenu;
-
-    var styleToggleBtn = document.getElementById('styleToggleBtn');
-    if (styleToggleBtn) styleToggleBtn.onclick = toggleStyleMode;
-
-    // 4. 显示开场设定面板
     showSetupPanel();
-    
-    // 5. 连接幕间 SDK
     initSDK();
 };
+
