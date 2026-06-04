@@ -1,7 +1,7 @@
 // ========== 自定义 API 配置 (在这里修改你的配置) ==========
-const API_URL = 'https://api.242243.xyz/v1'; // 替换为你的 API 地址
-const API_KEY = 'sk-4FyMPKGgQZCm5UMAE5ki638FFOaJDLr6ewKlvyCHLFde74xA'; // 替换为你的真实 API Key
-const MODEL_NAME = '[官3] deepseek-v4-pro'; // 替换为你的模型名称
+const API_URL = 'https://app.momotale.com/v1/chat/completions'; // 替换为你的 API 地址
+const API_KEY = 'sk-oP1KlXULrxF7z5o_UAk_pvQL8A1TtqjwGYDUevkN3_S0dROr6x788XjKbPs'; // 替换为你的真实 API Key
+const MODEL_NAME = '[momo]deepseek-v4-pro'; // 替换为你的模型名称
 
 // 聊天历史记录（用于让 AI 记住上下文）
 let chatHistory = [];
