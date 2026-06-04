@@ -24,7 +24,8 @@ function savePlayerInfo() {
     updatePlayerInfoDisplay();
     playerInfoSent = false; 
     
-    document.getElementById('gameDeclarationOverlay').classList.remove('hidden');
+        document.getElementById('gameDeclaration').classList.remove('hidden');
+
 }
 
 function getPlayerInfoText() {
