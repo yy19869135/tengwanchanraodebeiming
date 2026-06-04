@@ -5,6 +5,7 @@ var currentSaveMode = 'save'; // 'save' 或 'load'
 function toggleSavePanel() {
     var panel = document.getElementById('savePanel');
     panel.classList.toggle('active');
+    document.getElementById('menuBtn').style.display = 'flex'; // ★ 修复：关闭时恢复菜单按钮
     if (panel.classList.contains('active')) {
         renderSaveSlots();
     }
@@ -77,6 +78,7 @@ function loadSave(index) {
     affectionData = JSON.parse(JSON.stringify(slot.affection));
     toggleSavePanel();
     document.getElementById('menuPanel').classList.remove('active');
+    document.getElementById('menuBtn').style.display = 'flex'; // ★ 修复：读档后恢复菜单按钮
     
     var toast = document.createElement('div');
     toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%, -50%);background:rgba(0,0,0,0.8);color:#7eb8da;padding:12px 24px;border-radius:8px;z-index:9999;border:1px solid #7eb8da;';
