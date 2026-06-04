@@ -266,9 +266,89 @@ function checkAndTriggerMinigame(text) {
     return false;
 }
 
+var expandedCategory = null;
+var gameCategories = [
+    {
+        id: 'bookstore', name: '沈砚辞的书店', icon: '📖', char: '沈砚辞',
+        games: [
+            { id: 'bookshelf', name: '整理书架', desc: '把乱序的书按规则排好' },
+            { id: 'bookquiz', name: '古籍猜谜', desc: '根据描述猜书名' },
+            { id: 'bookmemory', name: '记忆翻牌', desc: '翻牌配对找相同' },
+            { id: 'bookmanage', name: '经营书店', desc: '买卖书籍赚取利润' }
+        ]
+    },
+    {
+        id: 'ocean', name: '炽野的海边', icon: '🌊', char: '炽野',
+        games: [
+            { id: 'surfing', name: '冲浪挑战', desc: '躲避障碍物' },
+            { id: 'shells', name: '捡贝壳', desc: '限时收集贝壳' },
+            { id: 'fishing', name: '钓鱼', desc: '把握时机钓大鱼' },
+            { id: 'skipping', name: '打水漂', desc: '控制角度和力度' }
+        ]
+    },
+    {
+        id: 'flowershop', name: '温辞的花店', icon: '💐', char: '温辞',
+        games: [
+            { id: 'flowerquiz', name: '花语猜谜', desc: '根据花语猜花名' },
+            { id: 'flowermanage', name: '经营花店', desc: '卖花赚取利润' },
+            { id: 'bouquet', name: '插花搭配', desc: '搭配美丽的花束' },
+            { id: 'watering', name: '浇花养花', desc: '照顾花朵成长' }
+        ]
+    }
+];
+
+function renderGameCategories() {
+    var container = document.getElementById('gameCategories');
+    if (!container) return;
+    var html = '';
+    gameCategories.forEach(function(cat) {
+        html += '<div class="game-category">';
+        html += '<div class="category-header" onclick="toggleCategory(\'' + cat.id + '\')">';
+        html += '<span class="category-icon">' + cat.icon + '</span>';
+        html += '<div class="category-info"><div class="category-name">' + cat.name + '</div><div class="category-char">关联角色：' + cat.char + '</div></div>';
+        html += '<span class="category-lock category-unlock">▼</span>';
+        html += '</div>';
+        html += '<div class="game-list" id="gameList_' + cat.id + '">';
+        cat.games.forEach(function(game) {
+            html += '<div class="game-item" onclick="startGame(\'' + game.id + '\')">';
+            html += '<div><div class="game-name">' + game.name + '</div><div class="game-desc">' + game.desc + '</div></div>';
+            html += '</div>';
+        });
+        html += '</div></div>';
+    });
+    container.innerHTML = html;
+}
+
+function toggleCategory(catId) {
+    var list = document.getElementById('gameList_' + catId);
+    if (!list) return;
+    if (expandedCategory === catId) {
+        list.classList.remove('expanded');
+        expandedCategory = null;
+    } else {
+        document.querySelectorAll('.game-list').forEach(function(el) { el.classList.remove('expanded'); });
+        list.classList.add('expanded');
+        expandedCategory = catId;
+    }
+}
+
+function startGame(gameId) {
+    if (typeof showToast === 'function') {
+        showToast('小游戏代码暂未并入，开发中...', '#ffaa00');
+    } else {
+        alert('小游戏代码暂未并入，开发中...');
+    }
+}
+
+function exitGame() {
+    document.getElementById('gameScreen').classList.remove('active');
+    document.getElementById('menuBtn').style.display = 'flex';
+}
+
 function toggleMinigamePanel() {
     var panel = document.getElementById('minigamePanel');
     panel.classList.toggle('active');
+    document.getElementById('menuBtn').style.display = 'flex'; // ★ 修复：关闭时恢复菜单按钮
     if (panel.classList.contains('active')) {
         renderGameCategories();
     }
