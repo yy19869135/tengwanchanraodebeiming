@@ -101,7 +101,8 @@ function switchIntroTab(charName) {
     
     var traitsHtml = data.traits.map(function(t) { return '<li>' + t + '</li>'; }).join('');
     
-    var truthUnlocked = affectionData.characters.find(function(c) { return c.name === charName; }).value >= 70;
+    var char = affectionData && affectionData.characters && affectionData.characters.find(function(c) { return c.name === charName; });
+var truthUnlocked = char ? char.value >= 70 : false;
     var truthHtml = '';
     
     if (truthUnlocked) {
