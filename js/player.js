@@ -58,6 +58,7 @@ function updatePlayerInfoDisplay() {
 function toggleCharacterIntro() {
     var panel = document.getElementById('characterIntroPanel');
     panel.classList.toggle('active');
+    document.getElementById('menuBtn').style.display = 'flex'; // ★ 修复：关闭时恢复菜单按钮
     if (panel.classList.contains('active')) {
         switchIntroTab('public');
     }
